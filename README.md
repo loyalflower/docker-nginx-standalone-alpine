@@ -1,57 +1,42 @@
-nginx-portable
-==============
+# nginx 独立安装版
+本镜像会将 nginx 编译安装，并打包在 /usr/local/nginx 目录下。
 
-nginx-portable is a portable version of the nginx web server for linux.  
-At this point in time the package contains nginx-1.10.2 or nginx-1.11.8 with the --latest flag; so no fastcgi and mysql just yet.
+要使用该 nginx，只需要将 /usr/local/nginx 复制过去即可
 
-#### About nginx
+## 特性
+1. 不支持 openssl。即不支持 https 请求
+2. 只支持 alpine 平台，更多平台有待测试，按理 debian 系列都支持
+3. 支持 rewrite
+4. 支持 zlib
 
-> nginx [engine x] is an HTTP and reverse proxy server, as well as a mail proxy server, written by Igor Sysoev  
+## 基础镜像
+alpine:3.9
 
-You can read all about it on the [nginx website](http://nginx.org/en/)  
+## build 构建
+make build tag=x.x.x  构建并自动上传
 
-## Goals
-What is nginx-portable all about?
-* A standalone, pre-configured, portable, stable version of the nginx web server for linux
-* Easily distributable package together with or as base for other products
+make dev-build 该命令会自动将创建的镜像命名为 nginx-standalone
 
-## Dependencies
-On Ubuntu installing the following packages should provide all the files necessary to build nginx
-```
-sudo apt-get install curl build-essential libpcre3-dev libssl-dev
-```
+## workdir
+/usr/local/nginx
 
-## Getting started
-1. Clone this repository
-2. To compile a binary for your architecture issue `./compile`.
-3. Run `sudo ./nginx-portable start` to start the server
-4. Fire up your favorite browser and go to `http://localhost:8080`
-Voila!
+## entrypoint.sh
+/usr/local/nginx/entrypoint.sh
 
-Congratulations, your nginx server is up and running.  
-Now go on and add your own files to the `html` directory.
+## nginx 配置文件
+主： /usr/local/nginx/conf/nginx.conf
 
-## Usage
+站： /usr/local/nginx/conf/conf.d/default.conf。 默认站点目录 /var/www，默认将 php 请求转发到 127.0.0.1:9000
 
-#### The init script
-The init script works pretty much exactly like nginx init.d script on Ubuntu.
-```
-Usage: ./nginx-portable {start|stop|restart|reload|test}
-```
+## nginx 默认站点目录
+/var/www
 
-#### Configuration
-If you need to change any of the default values you can find `nginx.conf` under
-`conf/nginx.conf` in the nginx-portable directory.
+## 环境变量
+### NGINX_SERVER_CONFIG
+自定义站点配置文件路径。会自动将 conf/conf.d/default.conf 替换为 ${NGINX_SERVER_CONFIG}/nginx.conf
 
-### Customization
-Additional modules and flags can be added to/removed from the appropriate line in the `compile` file.
+### WWW_ROOT
+仍然使用默认的站点配置，只修改站点根路径。即将默认的配置 root /var/www; 替换为 root ${WWW_ROOT};
 
-## Known issues
-* This package has only been tested on Ubuntu Server 12.04 LTS 32bit, Ubuntu Server 13.10 64bit and Ubuntu Server 14.04 64bit.
-* The compile script currently does not work correctly under Mac OSX. You can get it to run by hardcoding the scripts absolute path to `BASEDIR` in the compile script.
-
-If your find any bugs or have suggestions on how to improve nginx-portable, feel free to write up an issue here on GitHub or fork the repo to tinker with it yourself.
-
-## Boring legal stuff
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+### PHP_FPM_SOCKET
+自定义 php-fpm 的访问连接，默认是 127.0.0.1:9000
