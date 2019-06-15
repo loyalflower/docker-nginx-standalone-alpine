@@ -40,4 +40,6 @@ RUN set -xe \
     # 删除编译依赖
     && rm -rf depends/*
 
+EXPOSE 80
+
 ENTRYPOINT [ "/usr/local/nginx/entrypoint.sh" ]
